@@ -1,13 +1,14 @@
 /**
  * phantomjs shike.js <垫>
- * 默认免邮费
+ * 默认免邮费 美食
+ * 搜索免邮费
  */
 
 var webpage=require('webpage');
 var system = require('system');
 
 var INDEX=1;
-var MAX=2;//最大多少页
+var MAX=1;//最大多少页
 
 var page=webpage.create();
 page.onConsoleMessage = function(msg) {
@@ -23,6 +24,18 @@ page.onUrlChanged = function(targetUrl) {
       start();
   }
 };
+page.open('http://login.shikee.com/',function(status){
+     console.log('开始登录');
+    if(status!=='success')return console.log('登录页面请求失败');
+    page.evaluate(function(){
+        var $doc=$(document);
+        var $username=$doc.find('#J_userName').val('用户名');
+        var $password=$doc.find('#J_pwd').val('密码');
+        var $submit=$doc.find('#J_submit');
+        $submit.trigger('click');
+    })
+    // phantom.exit();
+})
 
 function start(){
     console.log('开始抓取第'+INDEX+'页');
@@ -43,7 +56,7 @@ function getList(index,cb){
     newPage.onConsoleMessage = function(msg) {
       console.log(msg);
     }
-    var url='http://list.shikee.com/list-'+index+'.html?posfree=1';
+    var url='http://list.shikee.com/list-'+index+'.html?posfree=1&cate=5';
     if(system.args[1]){
         //如果存在搜索
         url='http://list.shikee.com/list-'+index+'.html?posfree=1&keyword='+encodeURIComponent(system.args[1])
@@ -62,19 +75,47 @@ function getList(index,cb){
            });
            console.log('得到网址：'+urls.length);
            if(urls.length==0)return cb();
-           var OBJ={num:urls.length}
-           urls.forEach(function(url){
-               createpage(url,OBJ,cb);
-           });
+           var OBJ={num:urls.length};
+           var fn_arr=urls.map(function(url){
+               return createpage.bind(this,url,OBJ,cb);
+           })
+           delay(fn_arr,3000);
+        //    urls.forEach(function(url){
+            //    createpage(url,OBJ,cb);
+        //    });
            newPage.close();
        })
     })
 }
 
+/**
+ * 延迟函数
+ * @params fn_arr 函数数组
+ * @params time 延迟参数ms
+ * @returns void
+ */
+ function delay(fn_arr,time){
+     if(fn_arr.length==0){
+         return;
+     }
+     var fn=fn_arr.pop();
+     setTimeout(function(){
+         fn();
+         delay(fn_arr,time);
+     },time)
+ }
+
 function createpage(url,OBJ,cb){
     var newPage=webpage.create();
     newPage.onUrlChanged=function(targetUrl){
         // console.log(targetUrl);
+    }
+    newPage.onResourceRequested = function (req) {
+        //console.log('requested: ' + JSON.stringify(req, undefined, 4));
+        var url=JSON.parse(JSON.stringify(req, undefined, 4)).url;
+        if(url.indexOf('http://detail.shikee.com/detail/apply/')!=-1){
+
+        }
     }
     newPage.onConsoleMessage = function(msg) {
       console.log(msg);
@@ -90,7 +131,7 @@ function createpage(url,OBJ,cb){
                     Detail.wait_to_apply(5);
                     setTimeout(function(){
                         $('#linkCofirm').trigger('click');
-                    },6000)
+                    },5500)
                 }
             }else{
                 console.log('不存在');
@@ -112,16 +153,3 @@ function createpage(url,OBJ,cb){
 function finish(){
     phantom.exit();
 }
-
-page.open('http://login.shikee.com/',function(status){
-     console.log('开始登录');
-    if(status!=='success')return console.log('登录页面请求失败');
-    page.evaluate(function(){
-        var $doc=$(document);
-        var $username=$doc.find('#J_userName').val('用户名');
-        var $password=$doc.find('#J_pwd').val('密码');
-        var $submit=$doc.find('#J_submit');
-        $submit.trigger('click');
-    })
-    // phantom.exit();
-})
