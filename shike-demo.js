@@ -8,7 +8,7 @@ var webpage=require('webpage');
 var system = require('system');
 
 var INDEX=1;
-var MAX=1;//最大多少页
+var MAX=2;//最大多少页
 
 var page=webpage.create();
 page.onConsoleMessage = function(msg) {
@@ -79,7 +79,7 @@ function getList(index,cb){
            var fn_arr=urls.map(function(url){
                return createpage.bind(this,url,OBJ,cb);
            })
-           delay(fn_arr,3000);
+           delay(fn_arr,3000,cb);
         //    urls.forEach(function(url){
             //    createpage(url,OBJ,cb);
         //    });
@@ -94,14 +94,14 @@ function getList(index,cb){
  * @params time 延迟参数ms
  * @returns void
  */
- function delay(fn_arr,time){
+ function delay(fn_arr,time,cb){
      if(fn_arr.length==0){
-         return;
+         return cb();
      }
      var fn=fn_arr.pop();
      setTimeout(function(){
          fn();
-         delay(fn_arr,time);
+         delay(fn_arr,time,cb);
      },time)
  }
 
