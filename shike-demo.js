@@ -33,8 +33,8 @@ page.open('http://login.shikee.com/',function(status){
     if(status!=='success')return console.log('登录页面请求失败');
     page.evaluate(function(){
         var $doc=$(document);
-        // var $username=$doc.find('#J_userName').val('用户名');
-        // var $password=$doc.find('#J_pwd').val('密码');
+        var $username=$doc.find('#J_userName').val('用户名');
+        var $password=$doc.find('#J_pwd').val('密码');
         var $submit=$doc.find('#J_submit');
         $submit.trigger('click');
     })
@@ -55,11 +55,11 @@ function kwFn(){
     });
 }
 
-function start(){
+function start(cb){
     console.log('开始抓取第'+INDEX+'页');
     getList(INDEX,function(){
         if(INDEX>=MAX){
-            return finish();
+            return cb();
         }
         INDEX++;
         start();
