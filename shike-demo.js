@@ -8,7 +8,10 @@ var webpage=require('webpage');
 var system = require('system');
 
 var INDEX=1;
-var MAX=2;//最大多少页
+var MAX=1;//最大多少页
+
+var keywords=['茶','垫','乌龙茶','铁观音','蜂蜜','钢化膜','iphone+数据线','苹果+数据线'];
+var kw;
 
 var page=webpage.create();
 page.onConsoleMessage = function(msg) {
@@ -21,7 +24,8 @@ page.onUrlChanged = function(targetUrl) {
       page.close();
       //获取
       console.log('开始获得地址');
-      start();
+    //   start();
+    kwFn();
   }
 };
 page.open('http://login.shikee.com/',function(status){
@@ -29,13 +33,27 @@ page.open('http://login.shikee.com/',function(status){
     if(status!=='success')return console.log('登录页面请求失败');
     page.evaluate(function(){
         var $doc=$(document);
-        var $username=$doc.find('#J_userName').val('用户名');
-        var $password=$doc.find('#J_pwd').val('密码');
+        // var $username=$doc.find('#J_userName').val('用户名');
+        // var $password=$doc.find('#J_pwd').val('密码');
         var $submit=$doc.find('#J_submit');
         $submit.trigger('click');
     })
     // phantom.exit();
 })
+
+function kwFn(){
+    kw=keywords.shift();
+    console.log('关键词：'+kw);
+    INDEX=1;
+    start(function(){
+        if(keywords.length>0){
+            console.log('----------');
+            kwFn();
+        }else{
+            finish();
+        }
+    });
+}
 
 function start(){
     console.log('开始抓取第'+INDEX+'页');
@@ -56,11 +74,18 @@ function getList(index,cb){
     newPage.onConsoleMessage = function(msg) {
       console.log(msg);
     }
-    var url='http://list.shikee.com/list-'+index+'.html?posfree=1&cate=5';
-    if(system.args[1]){
-        //如果存在搜索
-        url='http://list.shikee.com/list-'+index+'.html?posfree=1&keyword='+encodeURIComponent(system.args[1])
-    }
+    // var url='http://list.shikee.com/list-'+index+'.html?posfree=1&cate=5';
+    // if(system.args[1]){
+    //     var keyword=system.args[1];
+    //     var arr=system.args[1].split(':');
+    //     if(arr.length>1){
+    //         MAX=arr[1];
+    //         keyword=arr[0];
+    //     }
+    //     //如果存在搜索
+    //     url='http://list.shikee.com/list-'+index+'.html?posfree=1&keyword='+encodeURIComponent(keyword)
+    // }
+    url='http://list.shikee.com/list-'+index+'.html?posfree=1&keyword='+encodeURIComponent(kw)
     newPage.open(url,function(status){
       if(status!=='success')return console.log('失败');
        newPage.includeJs('http://static.shikee.com/common/js/jquery-1.10.2.min.js',function(){
@@ -79,7 +104,7 @@ function getList(index,cb){
            var fn_arr=urls.map(function(url){
                return createpage.bind(this,url,OBJ,cb);
            })
-           delay(fn_arr,3000,cb);
+           delay(fn_arr,6500,cb);
         //    urls.forEach(function(url){
             //    createpage(url,OBJ,cb);
         //    });
@@ -137,10 +162,10 @@ function createpage(url,OBJ,cb){
                 console.log('不存在');
             }
           });
-          OBJ.num--;
           if(OBJ.num==0){
               cb();
           }else{
+              OBJ.num--;
               console.log('还剩下：'+OBJ.num);
           }
           setTimeout(function(){
