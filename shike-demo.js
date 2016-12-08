@@ -10,10 +10,11 @@ var system = require('system');
 var INDEX=1;
 var MAX=1;//最大多少页
 
-var keywords=['茶','垫','乌龙茶','铁观音','蜂蜜','钢化膜','iphone+数据线','苹果+数据线'];
+var keywords=['茶','乌龙茶','铁观音','蜂蜜','钢化膜','iphone+数据线','苹果+数据线','必备','苹果6+手机壳','iphone6+手机壳','沙发+垫','椅子+垫'];
 var kw;
 
 var page=webpage.create();
+page.settings.userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36';
 page.onConsoleMessage = function(msg) {
   console.log(msg);
 }
@@ -30,7 +31,11 @@ page.onUrlChanged = function(targetUrl) {
 };
 page.open('http://login.shikee.com/',function(status){
      console.log('开始登录');
-    if(status!=='success')return console.log('登录页面请求失败');
+    if(status!=='success'){
+        console.log('登录页面请求失败');
+        console.log(status);
+        return finish();
+    }
     page.evaluate(function(){
         var $doc=$(document);
         var $username=$doc.find('#J_userName').val('用户名');
@@ -162,12 +167,14 @@ function createpage(url,OBJ,cb){
                 console.log('不存在');
             }
           });
-          if(OBJ.num==0){
-              cb();
-          }else{
-              OBJ.num--;
-              console.log('还剩下：'+OBJ.num);
-          }
+          setTimeout(function(){
+              if(OBJ.num==0){
+                  cb();
+              }else{
+                  OBJ.num--;
+                  console.log('还剩下：'+OBJ.num);
+              }
+          },5500)
           setTimeout(function(){
               newPage.close();
         },6000)
