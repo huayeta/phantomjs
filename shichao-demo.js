@@ -97,6 +97,15 @@ function createpage(url,OBJ,cb){
     newPage.onResourceRequested = function (req) {
 
     }
+    newPage.onResourceTimeout=function(request){
+        console.log('请求超时');
+        OBJ.num--;
+        if(OBJ.num==0){
+            cb();
+        }else{
+            console.log('还剩下：'+OBJ.num);
+        }
+    }
     newPage.onConsoleMessage = function(msg) {
       console.log(msg);
     }
